@@ -2,7 +2,6 @@ import streamlit as st
 from pytube import YouTube
 from pytube.cli import on_progress
 from moviepy.editor import AudioFileClip
-import os
 
 def sanitize_filename(filename):
     bad_chars = ['\\', '/', ':', '*', '?', '"', '<', '>', '|']
@@ -10,11 +9,14 @@ def sanitize_filename(filename):
         filename = filename.replace(char, '')
     return filename
 
-def download_and_convert(url, audio_format, convert, download_dir):
+def download_and_convert(url, video_quality, audio_format, convert):
     yt = YouTube(url, on_progress_callback=on_progress)
-    video = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
+    if video_quality == "1080p":
+        video = yt.streams.get_highest_resolution()
+    else:
+        video = yt.streams.filter(progressive=True, resolution=video_quality).first()
     
-    output_path = video.download(filename=sanitize_filename(video.title), output_path=download_dir)
+    output_path = video.download(filename=sanitize_filename(video.title))
     media_type = 'video/mp4'
     
     if convert:
@@ -25,26 +27,23 @@ def download_and_convert(url, audio_format, convert, download_dir):
 
     return output_path, media_type
 
-st.title("YouTube Downloader & Converter")
+st.title("Baixar e Converter Vídeos do YouTube")
 
-query = st.text_input("Input here")
+query = st.text_input("Insira aqui a URL do vídeo do YouTube")
 
-audio_format = st.selectbox("Choose Audio Format", ["mp3", "wav"])
+video_quality = st.selectbox("Escolha a qualidade do vídeo", ["1080p", "720p", "480p", "360p", "240p"])
 
-convert = st.checkbox("Convert to audio?")
+audio_format = st.selectbox("Escolha o formato do áudio", ["mp3", "wav"])
 
-# diretório padrão que pode ser alterado pelo usuário
-download_dir = st.text_input("Enter download directory", value='C:\\Users\\mauro\\Downloads')
+convert = st.checkbox("Converter para áudio?")
 
-if st.button("Download"):
-    if os.path.exists(download_dir):
-        output_path, media_type = download_and_convert(query, audio_format, convert, download_dir)
-        if convert:
-            st.audio(output_path, format=media_type)
-        else:
-            st.video(output_path, format=media_type)
+if st.button("Baixar"):
+    output_path, media_type = download_and_convert(query, video_quality, audio_format, convert)
+    if convert:
+        st.audio(output_path, format=media_type)
     else:
-        st.write(f"The directory {download_dir} does not exist.")
+        st.video(output_path, format=media_type)
+
 
 
 
