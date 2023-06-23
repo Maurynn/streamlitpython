@@ -33,7 +33,8 @@ audio_format = st.selectbox("Choose Audio Format", ["mp3", "wav"])
 
 convert = st.checkbox("Convert to audio?")
 
-download_dir = st.text_input("Enter download directory")
+# diretório padrão que pode ser alterado pelo usuário
+download_dir = st.text_input("Enter download directory", value='C:\\Users\\mauro\\Downloads')
 
 if st.button("Download"):
     if os.path.exists(download_dir):
@@ -44,6 +45,7 @@ if st.button("Download"):
             st.video(output_path, format=media_type)
     else:
         st.write(f"The directory {download_dir} does not exist.")
+
 
 
 
